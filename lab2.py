@@ -215,7 +215,7 @@ def minimax_search(state, heuristic_fn=always_zero, depth_limit=INF, maximize=Tr
                 for x in eval[0]:
                     maxEval[0].append(x)
                 maxEval[1] = eval[1]
-
+                # ^?
         return maxEval
 
     minEval = [[], INF, 0]
@@ -237,6 +237,10 @@ def minimax_search(state, heuristic_fn=always_zero, depth_limit=INF, maximize=Tr
 # depth_limit=1. Try increasing the value of depth_limit to see what happens:
 
 #pretty_print_dfs_type(minimax_search(state_UHOH, heuristic_fn=heuristic_connectfour, depth_limit=2))
+finalBeta = INF
+finalAlpha = -INF
+
+
 
 def minimax_search_alphabeta(state, alpha=-INF, beta=INF, heuristic_fn=always_zero,
                              depth_limit=INF, maximize=True):
@@ -275,6 +279,7 @@ def minimax_search_alphabeta(state, alpha=-INF, beta=INF, heuristic_fn=always_ze
 
             alpha = max(alpha, eval[1])
             if beta <= alpha:
+                finalAlpha = alpha
                 break
 
         return maxEval
@@ -292,6 +297,7 @@ def minimax_search_alphabeta(state, alpha=-INF, beta=INF, heuristic_fn=always_ze
 
         beta = min(beta, eval[1])
         if beta <= alpha:
+            finalBeta = alpha
             break
 
     return minEval
@@ -304,8 +310,32 @@ def minimax_search_alphabeta(state, alpha=-INF, beta=INF, heuristic_fn=always_ze
 # pretty_print_dfs_type(minimax_search_alphabeta(state_UHOH, heuristic_fn=heuristic_connectfour, depth_limit=4))
 
 
-def progressive_deepening(state, heuristic_fn=always_zero, depth_limit=INF,
-                          maximize=True, time_limit=INF):
+
+
+def progressive_deepening(state, heuristic_fn=always_zero, depth_limit=INF, maximize=True, time_limit=INF):
+    start = time()
+    end = time()
+    depth = 0
+    av = AnytimeValue()
+    alpha = -INF
+    beta = INF
+
+    while (end - start) <= time_limit and depth <= depth_limit:
+        av.set_value(minimax_search_alphabeta(state, alpha, beta, heuristic_fn, depth, maximize))
+
+        depth += 1
+        alpha = finalAlpha
+        beta = finalBeta
+        end = time()
+
+
+    if (end - start) > time_limit:
+        av.set_value(minimax_search_alphabeta(state, alpha, beta, heuristic_fn, depth - 1, maximize))
+
+    return av
+
+
+
     """Runs minimax with alpha-beta pruning. At each level, updates anytime_value
     with the tuple returned from minimax_search_alphabeta.
     Returns anytime_value."""
@@ -315,7 +345,14 @@ def progressive_deepening(state, heuristic_fn=always_zero, depth_limit=INF,
 # depth_limit=4. Compare the total number of evaluations with the number of
 # evaluations from minimax_search or minimax_search_alphabeta.
 
-# progressive_deepening(state_UHOH, heuristic_fn=heuristic_connectfour, depth_limit=4).pretty_print()
+
+# pretty_print_dfs_type(minimax_search_alphabeta(state_UHOH, heuristic_fn=heuristic_connectfour, depth_limit=4))
+
+# progressive_deepening(state_UHOH, heuristic_fn=heuristic_connectfour, depth_limit=4, maximize=True, time_limit=15).pretty_print()
+
+# pretty_print_dfs_type(minimax_search_alphabeta(GAME1, heuristic_fn=heuristic_connectfour, depth_limit=4))
+
+# progressive_deepening(GAME1, heuristic_fn=heuristic_connectfour, depth_limit=4, maximize=True, time_limit=15).pretty_print()
 
 
 # Progressive deepening is NOT optional. However, you may find that
